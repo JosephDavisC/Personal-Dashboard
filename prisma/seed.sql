@@ -13,6 +13,7 @@ DECLARE
   topic_a text := gen_random_uuid()::text;
   topic_b text := gen_random_uuid()::text;
   racket text := gen_random_uuid()::text;
+  racket2 text := gen_random_uuid()::text;
   i int;
 BEGIN
   IF EXISTS (SELECT 1 FROM "Task") THEN
@@ -111,7 +112,11 @@ BEGIN
 
   -- ===== Tennis =====
   INSERT INTO "TennisRacket" (id, name, brand, model, "headSize", weight, pattern, "currentString", tension, "lastStrung", "updatedAt") VALUES
-    (racket, 'Match racket', 'Wilson', 'Blade 98', 98, 305, '16x19', 'Poly Tour Pro 125', '52 lbs', NOW() - interval '18 days', NOW());
+    (racket, 'Match racket', 'Diadem', 'Elevate 98', 98, 309, '16x19', 'Poly Tour Pro 125 / multifilament hybrid', '47/45 lbs', NOW() - interval '18 days', NOW()),
+    (racket2, 'Hitting racket', 'Babolat', 'Pure Drive', 100, 300, '16x19', 'Multifilament 17', '55 lbs', NOW() - interval '60 days', NOW());
+  INSERT INTO "RacketPhoto" (id, "racketId", url) VALUES
+    (gen_random_uuid()::text, racket, '/demo/rackets/diadem-elevate-98.webp'),
+    (gen_random_uuid()::text, racket2, '/demo/rackets/babolat-pure-drive.webp');
   INSERT INTO "TennisSession" (id, type, date, duration, location, "racketId", notes, "playedWith", "updatedAt") VALUES
     (gen_random_uuid()::text, 'PRACTICE', NOW() - interval '2 days', 1.5, 'City courts', racket, 'Worked on serve toss.', 'Sam', NOW()),
     (gen_random_uuid()::text, 'LESSON', NOW() - interval '9 days', 1, 'City courts', racket, 'Backhand footwork.', NULL, NOW());
