@@ -90,8 +90,8 @@ BEGIN
 
   -- ===== Important topics =====
   INSERT INTO "ImportantTopic" (id, title, icon, color, category, pinned, "updatedAt") VALUES
-    (topic_a, 'Travel', 'plane', '#60A5FA', 'personal', true, NOW()),
-    (topic_b, 'Job search', 'briefcase', '#34D399', 'work', false, NOW());
+    (topic_a, 'Travel', NULL, '#60A5FA', 'personal', true, NOW()),
+    (topic_b, 'Job search', NULL, '#34D399', 'work', false, NOW());
   INSERT INTO "ImportantItem" (id, "topicId", type, label, url, content, "updatedAt") VALUES
     (gen_random_uuid()::text, topic_a, 'note', 'Packing list', NULL, 'Charger, adapter, passport, rain jacket.', NOW()),
     (gen_random_uuid()::text, topic_b, 'link', 'Resume template', 'https://example.com/resume', NULL, NOW());
@@ -103,7 +103,7 @@ BEGIN
     (site_c, 'GitHub', 'https://github.com', 2, NOW());
   INSERT INTO "SitePing" (id, "siteId", status, "responseTime", "isUp", "checkedAt")
   SELECT gen_random_uuid()::text, s.id,
-         CASE WHEN random() < 0.995 THEN 200 ELSE 503 END,
+         CASE WHEN random() < 0.995 OR g > NOW() - interval '6 hours' THEN 200 ELSE 503 END,
          (120 + random() * 180)::int, true, g
   FROM generate_series(NOW() - interval '30 days', NOW(), interval '1 hour') g
   CROSS JOIN (VALUES (site_a), (site_b), (site_c)) AS s(id);
