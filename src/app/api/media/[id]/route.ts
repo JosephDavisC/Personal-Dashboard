@@ -76,8 +76,8 @@ export async function DELETE(
   }
 
   // Delete from filesystem
-  deleteFile(file.storedName);
-  if (file.thumbnail) deleteThumbnail(file.thumbnail);
+  await deleteFile(file.storedName);
+  if (file.thumbnail) await deleteThumbnail(file.thumbnail);
 
   // Clean up linked diary/task photo records
   await prisma.diaryPhoto.deleteMany({ where: { mediaId: id } });

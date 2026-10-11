@@ -27,6 +27,7 @@ import {
   compressImage,
   compressVideo,
 } from "@/lib/media-utils";
+import { persistMediaFile, persistThumbnail } from "@/lib/media-storage";
 import type { Prisma } from "@/generated/prisma/client";
 
 export async function GET(request: Request) {
@@ -116,6 +117,7 @@ export async function POST(request: Request) {
     } | null = null;
     let fileError: string | null = null;
     let sizeLimitHit = false;
+    let fileWritten: Promise<void> = Promise.resolve();
 
     busboy.on("file", (fieldname, stream, info) => {
       if (fieldname !== "file") {
@@ -135,6 +137,11 @@ export async function POST(request: Request) {
       ensureMediaDirs();
       const filePath = join(MEDIA_UPLOAD_DIR, storedName);
       const ws = createWriteStream(filePath);
+      // Resolves once every byte is on disk, so processing never reads a partial file
+      fileWritten = new Promise((res, rej) => {
+        ws.on("finish", () => res());
+        ws.on("error", rej);
+      });
 
       let size = 0;
       stream.on("data", (chunk: Buffer) => {
@@ -174,12 +181,13 @@ export async function POST(request: Request) {
           resolve(NextResponse.json({ error: "No file provided" }, { status: 400 }));
           return;
         }
+        await fileWritten;
 
         // Check storage quota
         const storageResult = await prisma.mediaFile.aggregate({ _sum: { size: true } });
         const currentUsage = storageResult._sum.size ?? 0;
         if (currentUsage + uploadedFile.size > MEDIA_STORAGE_LIMIT_BYTES) {
-          deleteFile(uploadedFile.storedName);
+          await deleteFile(uploadedFile.storedName);
           resolve(NextResponse.json({ error: "Storage quota exceeded" }, { status: 400 }));
           return;
         }
@@ -228,6 +236,10 @@ export async function POST(request: Request) {
           thumbnail = generatePdfThumbnail(uploadedFile.storedName);
         }
 
+        // Hand the finished file and thumbnail to the configured storage (disk or R2)
+        await persistMediaFile(uploadedFile.storedName, uploadedFile.mimeType);
+        if (thumbnail) await persistThumbnail(thumbnail);
+
         // Parse optional fields
         const title = fields.title || null;
         const description = fields.description || null;
@@ -258,7 +270,7 @@ export async function POST(request: Request) {
         resolve(NextResponse.json({ data: mediaFile }, { status: 201 }));
       } catch (err) {
         console.error("Upload error:", err);
-        if (uploadedFile) deleteFile(uploadedFile.storedName);
+        if (uploadedFile) await deleteFile(uploadedFile.storedName);
         resolve(
           NextResponse.json(
             { error: err instanceof Error ? err.message : "Upload failed" },

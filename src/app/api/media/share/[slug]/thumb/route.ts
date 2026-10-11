@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { existsSync, createReadStream, statSync } from "fs";
-import { getThumbPath } from "@/lib/media-utils";
-import { Readable } from "stream";
+import { openThumbnail } from "@/lib/media-storage";
 import { auth } from "@/lib/auth";
 
 export async function GET(
@@ -25,19 +23,15 @@ export async function GET(
     return NextResponse.json({ error: "Private" }, { status: 403 });
   }
 
-  const thumbPath = getThumbPath(file.thumbnail);
-  if (!existsSync(thumbPath)) {
+  const thumb = await openThumbnail(file.thumbnail);
+  if (!thumb) {
     return NextResponse.json({ error: "Thumbnail not found" }, { status: 404 });
   }
 
-  const size = statSync(thumbPath).size;
-  const stream = createReadStream(thumbPath);
-  const webStream = Readable.toWeb(stream) as ReadableStream;
-
-  return new Response(webStream, {
+  return new Response(thumb.body, {
     headers: {
-      "Content-Type": "image/jpeg",
-      "Content-Length": String(size),
+      "Content-Type": file.thumbnail.endsWith(".png") ? "image/png" : "image/jpeg",
+      "Content-Length": String(thumb.size),
       "Cache-Control": "public, max-age=86400",
     },
   });

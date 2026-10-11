@@ -5,7 +5,6 @@ import {
   mkdirSync,
   createWriteStream,
   unlinkSync,
-  createReadStream,
   statSync,
   renameSync,
 } from "fs";
@@ -13,6 +12,7 @@ import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import { join, extname } from "path";
 import { MEDIA_UPLOAD_DIR, MEDIA_THUMBS_DIR } from "./constants";
+import { deleteMediaFile, deleteStoredThumbnail } from "./media-storage";
 
 /** Ensure media directories exist */
 export function ensureMediaDirs() {
@@ -62,16 +62,14 @@ export async function saveFile(
   return filePath;
 }
 
-/** Delete file from disk */
-export function deleteFile(storedName: string): void {
-  const filePath = join(MEDIA_UPLOAD_DIR, storedName);
-  if (existsSync(filePath)) unlinkSync(filePath);
+/** Delete a media file from the configured storage (disk or R2) */
+export function deleteFile(storedName: string): Promise<void> {
+  return deleteMediaFile(storedName);
 }
 
-/** Delete thumbnail from disk */
-export function deleteThumbnail(thumbName: string): void {
-  const thumbPath = join(MEDIA_THUMBS_DIR, thumbName);
-  if (existsSync(thumbPath)) unlinkSync(thumbPath);
+/** Delete a thumbnail from the configured storage (disk or R2) */
+export function deleteThumbnail(thumbName: string): Promise<void> {
+  return deleteStoredThumbnail(thumbName);
 }
 
 /** Determine media category from MIME type */
@@ -304,33 +302,4 @@ export function formatDuration(seconds: number): string {
   if (h > 0)
     return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-/** Get file path on disk */
-export function getFilePath(storedName: string): string {
-  return join(MEDIA_UPLOAD_DIR, storedName);
-}
-
-/** Get thumbnail path on disk */
-export function getThumbPath(thumbName: string): string {
-  return join(MEDIA_THUMBS_DIR, thumbName);
-}
-
-/** Create a readable stream for file serving with optional range */
-export function createFileStream(
-  storedName: string,
-  start?: number,
-  end?: number
-) {
-  const filePath = join(MEDIA_UPLOAD_DIR, storedName);
-  return createReadStream(
-    filePath,
-    start !== undefined && end !== undefined ? { start, end } : undefined
-  );
-}
-
-/** Get file size from disk */
-export function getFileSize(storedName: string): number {
-  const filePath = join(MEDIA_UPLOAD_DIR, storedName);
-  return statSync(filePath).size;
 }

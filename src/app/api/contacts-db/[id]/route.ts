@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { updateContactSchema } from "@/lib/validations/contact";
+import { deleteMediaWithThumbnail } from "@/lib/media-storage";
 
 export async function PATCH(
   req: NextRequest,
@@ -56,10 +57,7 @@ export async function DELETE(
         where: { id: contact.photoMediaId },
       });
       if (media) {
-        const fs = await import("fs/promises");
-        const path = await import("path");
-        const filePath = path.join(process.cwd(), "uploads", media.storedName);
-        await fs.unlink(filePath).catch(() => {});
+        await deleteMediaWithThumbnail(media);
         await prisma.mediaFile.delete({ where: { id: media.id } });
       }
     } catch {

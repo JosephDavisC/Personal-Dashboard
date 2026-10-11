@@ -9,15 +9,12 @@ import {
   deleteDriveFile,
   getBackupFolderId,
 } from "@/lib/google-drive";
-import { MEDIA_UPLOAD_DIR } from "@/lib/constants";
 import { formatInTimeZone } from "date-fns-tz";
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
 import { sendAndLogEmail } from "@/lib/email";
 import { buildBackupCompleteEmail } from "@/lib/email-templates";
 import { sendPushNotification, getPreferences } from "@/lib/push";
 import { TIMEZONE } from "@/lib/constants";
+import { readMediaFile } from "@/lib/media-storage";
 
 export const dynamic = "force-dynamic";
 
@@ -68,9 +65,9 @@ export async function POST() {
 
         // Step 5: Upload each media file
         for (const file of mediaFiles) {
-          const filePath = join(MEDIA_UPLOAD_DIR, file.storedName);
+          const buffer = await readMediaFile(file.storedName).catch(() => null);
 
-          if (!existsSync(filePath)) {
+          if (!buffer) {
             skipped++;
             send({
               type: "progress",
@@ -80,7 +77,7 @@ export async function POST() {
               uploaded,
               skipped,
               filename: file.filename,
-              message: `Skipped (not on disk): ${file.filename}`,
+              message: `Skipped (missing from storage): ${file.filename}`,
             });
             continue;
           }
@@ -96,7 +93,6 @@ export async function POST() {
             message: `Uploading: ${file.filename}`,
           });
 
-          const buffer = await readFile(filePath);
           // Use storedName in Drive so snapshot.json references match
           await uploadBufferToDrive(buffer, file.storedName, file.mimeType, mediaFolderId, token);
 

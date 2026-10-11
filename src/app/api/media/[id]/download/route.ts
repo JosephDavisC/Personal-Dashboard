@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
-import { createFileStream, getFileSize } from "@/lib/media-utils";
-import { Readable } from "stream";
+import { openMediaFile } from "@/lib/media-storage";
 
 export async function GET(
   _request: Request,
@@ -26,13 +25,14 @@ export async function GET(
     });
   }
 
-  const fileSize = getFileSize(file.storedName);
-  const stream = createFileStream(file.storedName);
-  const webStream = Readable.toWeb(stream) as ReadableStream;
+  const obj = await openMediaFile(file.storedName);
+  if (!obj) {
+    return NextResponse.json({ error: "File missing from storage" }, { status: 404 });
+  }
 
   const headers: Record<string, string> = {
     "Content-Type": file.mimeType,
-    "Content-Length": String(fileSize),
+    "Content-Length": String(obj.size),
     "Cache-Control": "private, max-age=3600",
   };
 
@@ -41,5 +41,5 @@ export async function GET(
     headers["Content-Disposition"] = `attachment; filename="${encodeURIComponent(file.filename)}"`;
   }
 
-  return new Response(webStream, { headers });
+  return new Response(obj.body, { headers });
 }

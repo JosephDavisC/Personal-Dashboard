@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
-import { unlink } from "fs/promises";
-import { join } from "path";
+import { deleteMediaWithThumbnail } from "@/lib/media-storage";
 
 export async function DELETE(
   _req: Request,
@@ -21,11 +20,7 @@ export async function DELETE(
     if (photo.mediaId) {
       const media = await prisma.mediaFile.findUnique({ where: { id: photo.mediaId } });
       if (media) {
-        const uploadDir = process.env.UPLOAD_DIR || join(process.cwd(), "uploads");
-        try {
-          await unlink(join(uploadDir, media.storedName));
-          if (media.thumbnail) await unlink(join(uploadDir, media.thumbnail)).catch(() => {});
-        } catch {}
+        await deleteMediaWithThumbnail(media);
         await prisma.mediaFile.delete({ where: { id: media.id } });
       }
     }

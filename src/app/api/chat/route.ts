@@ -6,11 +6,9 @@ import { reconstructAnthropicMessages, trimMessageHistory } from "@/lib/chat-uti
 import Anthropic from "@anthropic-ai/sdk";
 import { formatInTimeZone } from "date-fns-tz";
 import { TIMEZONE, HOURLY_WAGE, NET_PAY_RATE, TAX_DEDUCTION_RATE } from "@/lib/constants";
-import { readFileSync } from "fs";
-import { join } from "path";
-import { MEDIA_UPLOAD_DIR } from "@/lib/constants";
 import { SITE } from "@/config/site";
 import { SHIFT_LOCATIONS } from "@/config/shifts";
+import { readMediaFile } from "@/lib/media-storage";
 
 export const dynamic = "force-dynamic";
 
@@ -142,8 +140,8 @@ export async function POST(request: Request) {
             try {
               const media = await prisma.mediaFile.findUnique({ where: { id: img.mediaId } });
               if (media) {
-                const filePath = join(MEDIA_UPLOAD_DIR, media.storedName);
-                const data = readFileSync(filePath);
+                const data = await readMediaFile(media.storedName);
+                if (!data) continue;
                 const mediaType = (img.mimeType || media.mimeType) as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
                 contentBlocks.push({
                   type: "image",

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
-import { getThumbPath } from "@/lib/media-utils";
+import { persistThumbnail, deleteStoredThumbnail } from "@/lib/media-storage";
 import { MEDIA_THUMBS_DIR } from "@/lib/constants";
-import { existsSync, unlinkSync, writeFileSync, mkdirSync } from "fs";
+import { existsSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 
 export async function POST(
@@ -30,12 +30,9 @@ export async function POST(
   }
 
   // Delete old thumbnail if exists
-  if (file.thumbnail) {
-    const oldPath = getThumbPath(file.thumbnail);
-    if (existsSync(oldPath)) unlinkSync(oldPath);
-  }
+  if (file.thumbnail) await deleteStoredThumbnail(file.thumbnail);
 
-  // Save new thumbnail
+  // Save new thumbnail locally, then move it to the configured storage
   if (!existsSync(MEDIA_THUMBS_DIR)) {
     mkdirSync(MEDIA_THUMBS_DIR, { recursive: true });
   }
@@ -46,6 +43,7 @@ export async function POST(
 
   const buffer = Buffer.from(await imageFile.arrayBuffer());
   writeFileSync(thumbPath, buffer);
+  await persistThumbnail(thumbName);
 
   await prisma.mediaFile.update({
     where: { id },
@@ -72,10 +70,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (file.thumbnail) {
-    const thumbPath = getThumbPath(file.thumbnail);
-    if (existsSync(thumbPath)) unlinkSync(thumbPath);
-  }
+  if (file.thumbnail) await deleteStoredThumbnail(file.thumbnail);
 
   await prisma.mediaFile.update({
     where: { id },

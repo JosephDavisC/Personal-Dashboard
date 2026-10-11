@@ -56,8 +56,8 @@ export async function DELETE(
       select: { storedName: true, thumbnail: true },
     });
     if (media) {
-      deleteFile(media.storedName);
-      if (media.thumbnail) deleteThumbnail(media.thumbnail);
+      await deleteFile(media.storedName);
+      if (media.thumbnail) await deleteThumbnail(media.thumbnail);
       await prisma.mediaFile.delete({ where: { id: photo.mediaId } });
     }
   }

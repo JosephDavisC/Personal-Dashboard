@@ -5,19 +5,17 @@ import {
   subWeeks,
   startOfDay,
   endOfDay,
-  format,
   addDays,
 } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { prisma } from "@/lib/prisma";
 import { sendAndLogEmail, type EmailAttachment } from "@/lib/email";
 import { buildWeeklySummaryEmail, type WeeklySummaryData } from "@/lib/email-templates";
-import { TIMEZONE, MEDIA_UPLOAD_DIR } from "@/lib/constants";
+import { TIMEZONE } from "@/lib/constants";
 import { sendPushNotification, getPreferences } from "@/lib/push";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
 import { shiftLocationLabel } from "@/config/shifts";
 import { APP_URL } from "@/lib/app-url";
+import { readMediaFile } from "@/lib/media-storage";
 
 interface ShiftsByLocation {
   location: string;
@@ -247,11 +245,10 @@ async function gatherWeeklyData(weekStart: Date, weekEnd: Date): Promise<WeeklyS
         const media = fileMap.get(item.mediaId);
         if (!media) continue;
 
-        const filePath = join(MEDIA_UPLOAD_DIR, media.storedName);
-        if (!existsSync(filePath)) continue;
+        const content = await readMediaFile(media.storedName).catch(() => null);
+        if (!content) continue;
 
         const cid = `photo-${i}@dashboard.local`;
-        const content = readFileSync(filePath);
         photoAttachments.push({
           filename: media.filename,
           content,

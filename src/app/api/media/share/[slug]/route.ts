@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { verifyPassword, createFileStream, getFileSize } from "@/lib/media-utils";
+import { verifyPassword } from "@/lib/media-utils";
+import { openMediaFile } from "@/lib/media-storage";
 import { cookies } from "next/headers";
-import { Readable } from "stream";
 
 export async function GET(
   request: Request,
@@ -55,25 +55,23 @@ export async function GET(
     });
   }
 
-  const fileSize = getFileSize(file.storedName);
   const rangeHeader = request.headers.get("range");
 
   // Handle Range requests for video streaming
   if (rangeHeader) {
     const parts = rangeHeader.replace("bytes=", "").split("-");
     const start = parseInt(parts[0] ?? "0", 10);
-    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-    const chunkSize = end - start + 1;
+    const end = parts[1] ? parseInt(parts[1], 10) : undefined;
 
-    const stream = createFileStream(file.storedName, start, end);
-    const webStream = Readable.toWeb(stream) as ReadableStream;
+    const obj = await openMediaFile(file.storedName, { start, end });
+    if (!obj) return NextResponse.json({ error: "File missing from storage" }, { status: 404 });
 
-    return new Response(webStream, {
+    return new Response(obj.body, {
       status: 206,
       headers: {
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Content-Range": `bytes ${obj.start}-${obj.end}/${obj.size}`,
         "Accept-Ranges": "bytes",
-        "Content-Length": String(chunkSize),
+        "Content-Length": String(obj.end - obj.start + 1),
         "Content-Type": file.mimeType,
         "Cache-Control": "public, max-age=31536000, immutable",
       },
@@ -81,13 +79,13 @@ export async function GET(
   }
 
   // Full file response
-  const stream = createFileStream(file.storedName);
-  const webStream = Readable.toWeb(stream) as ReadableStream;
+  const obj = await openMediaFile(file.storedName);
+  if (!obj) return NextResponse.json({ error: "File missing from storage" }, { status: 404 });
 
-  return new Response(webStream, {
+  return new Response(obj.body, {
     headers: {
       "Content-Type": file.mimeType,
-      "Content-Length": String(fileSize),
+      "Content-Length": String(obj.size),
       "Accept-Ranges": "bytes",
       "Cache-Control": "public, max-age=31536000, immutable",
       "Access-Control-Allow-Origin": "*",
