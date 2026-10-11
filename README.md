@@ -184,7 +184,7 @@ New uploads are still compressed and thumbnailed on the server first, then moved
 
 This app is built for one person. Before putting it on the internet:
 
-- Set `DEMO_MODE=false`. Demo mode turns off authentication completely.
+- Set `DEMO_MODE=false`. Demo mode turns off authentication completely, so on its own it must never be reachable from the internet. The only safe public demo is the read-only one below.
 - Set a strong `NEXTAUTH_SECRET` and `DB_PASSWORD`.
 - Put it behind a reverse proxy with HTTPS (Caddy, Nginx, Traefik). Compose binds the app to `127.0.0.1` only. See [Where to host it](#where-to-host-it).
 - Set `NEXTAUTH_URL` to your public URL and add the matching redirect URI in Google Cloud Console.

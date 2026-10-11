@@ -191,8 +191,9 @@ export { handlers, signIn, signOut };
 
 /**
  * Demo mode skips Google sign-in entirely and treats every request as the owner.
- * Only for trying the app locally: never enable it on an instance reachable
- * from the internet. DEV_BYPASS_AUTH is the older development-only switch.
+ * On an internet-reachable instance it is only safe together with
+ * DEMO_READONLY=true, which makes middleware refuse every change.
+ * DEV_BYPASS_AUTH is the older development-only switch.
  */
 export function isDemoMode(): boolean {
   return (
