@@ -49,6 +49,8 @@ This repository is a cleaned up public version of that dashboard. My personal da
 
 ## Light and dark
 
+> **A note on the look:** the design dates from February 2026, when I built the whole thing in about three weeks. Since then I have added features and fixed bugs, but I have not redesigned the interface, so some screens may feel a little dated.
+
 <table>
   <tr>
     <td><img src="docs/dashboard-light.webp" alt="Home, light mode" /></td>
