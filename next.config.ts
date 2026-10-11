@@ -16,6 +16,8 @@ const cspHeader = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Do not advertise the framework in an X-Powered-By header
+  poweredByHeader: false,
   output: "standalone",
   serverExternalPackages: ["pg", "@prisma/adapter-pg", "busboy", "nodemailer", "sharp", "web-push"],
   experimental: {
