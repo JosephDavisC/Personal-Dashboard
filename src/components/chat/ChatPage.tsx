@@ -828,7 +828,7 @@ export function ChatPage() {
             <div className="flex h-full flex-col items-center justify-center px-4 py-6 overflow-y-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/chat-icon-192.png"
+                src="/logo.png"
                 alt="Logo"
                 width={48}
                 height={48}
