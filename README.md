@@ -216,6 +216,8 @@ docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
 
 Put it behind HTTPS like any other deployment. Leave Google, Anthropic, SMTP and push settings empty for a demo; nothing in it needs them. Use a separate database just for the demo, because the daily reset wipes it. `DEMO_RESET_INTERVAL_SECONDS` changes how often it resets (default 86400, once a day).
 
+To update the demo later, `git pull` and run the same `up -d --build` command so every service is rebuilt, including the reset service and its copy of the demo data.
+
 ## Local development
 
 ```bash

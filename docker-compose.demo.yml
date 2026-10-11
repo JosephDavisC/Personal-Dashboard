@@ -2,6 +2,9 @@
 #
 #   docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
 #
+# When updating, rebuild every service (the command above does). Rebuilding only
+# `app` leaves `migrate` and `demo-reset` on an old image with an old seed.sql.
+#
 # Put it behind your reverse proxy with HTTPS like any other deployment.
 # Never point this at a database that holds real data: the reset wipes it.
 
