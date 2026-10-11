@@ -1,22 +1,62 @@
+<div align="center">
+
+<img src="docs/brand/jo-logo.png" width="96" alt="Jo logo" />
+
 # Personal Dashboard
 
-One screen for my whole life: calendar, tasks, work shifts and earnings, job applications, a diary, and the sites I run. Self-hosted, installable as a PWA, with push notifications.
+**One screen for my whole life.**<br/>
+Calendar, tasks, work shifts and earnings, job applications, a diary, and the sites I run.<br/>
+Self-hosted, installable as a PWA, with push notifications.
 
-![Dashboard tour](docs/demo.gif)
+![Next.js](https://img.shields.io/badge/Next.js_16-000?logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma_7-2D3748?logo=prisma&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-60A5FA)
 
-> The recording runs on invented demo data. Every name, company and number in it is made up.
+<img src="docs/demo.gif" alt="Dashboard tour: home, shifts, tasks, applications, diary, contacts, important, sites and tennis, in dark and light mode" />
+
+<sub>The recording runs on invented demo data. Every task, company and number in it is made up.<br/>
+Shorter cut: <a href="docs/demo-short.gif">demo-short.gif</a></sub>
+
+</div>
 
 ## Why I built it
+
+<img src="docs/brand/stress.webp" width="150" align="right" alt="Chibi Joseph, stressed" />
 
 I'm an organized person and I like to see everything on one screen. Every new task or deadline meant opening another tab, and I kept forgetting where I put things: Google Keep for notes, a calendar for classes, a dozen tabs for everything else.
 
 So one quiet quarter I built the screen I wanted, and I have used it every day since.
 
+<img src="docs/brand/coffee.webp" width="150" align="left" alt="Chibi Joseph with coffee" />
+
 The feature I open every day is **shifts and earnings**. It pulls my work schedule in from my calendar and shows what I will make this week. Scheduling apps like Workday and Humanity make you wait until the end of the pay period or count it by hand.
 
 Some pages I built and later stopped using: a diary, a memory page, and my own chatbot. I kept them anyway, because the point was one place for everything. My own copy runs on my VPS as a PWA installed from Safari, next to a status page and an analytics app I also built.
 
+<br clear="both"/>
+
 This repository is a cleaned up public version of that dashboard. My personal data and the parts tied to my own servers are gone; everything else is here for you to run and make your own.
+
+## Dark and light
+
+<table>
+  <tr>
+    <td><img src="docs/dashboard-dark.webp" alt="Home, dark mode" /></td>
+    <td><img src="docs/dashboard-light.webp" alt="Home, light mode" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/shifts-dark.webp" alt="Shifts and earnings, dark mode" /></td>
+    <td><img src="docs/shifts-light.webp" alt="Shifts and earnings, light mode" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/tasks-dark.webp" alt="Task board, dark mode" /></td>
+    <td><img src="docs/tasks-light.webp" alt="Task board, light mode" /></td>
+  </tr>
+</table>
 
 ## Features
 
@@ -37,18 +77,15 @@ This repository is a cleaned up public version of that dashboard. My personal da
 | **Backups** | JSON snapshots, CSV export, PDF report, optional Google Sheets sync and Google Drive backup |
 | **Everything else** | Command palette (Cmd+K), keyboard shortcuts, push notifications, weekly summary email, database viewer, dark and light themes, cross device sync |
 
-<p>
-  <img src="docs/home.png" width="49%" alt="Home" />
-  <img src="docs/shifts.png" width="49%" alt="Shifts and earnings" />
-</p>
-
 ## Quick start (Docker)
+
+<img src="docs/brand/headphones.webp" width="140" align="right" alt="Chibi Joseph with headphones" />
 
 You need [Docker](https://docs.docker.com/get-docker/) with Compose.
 
 ```bash
-git clone https://github.com/JosephDavisC/personal-dashboard.git
-cd personal-dashboard
+git clone https://github.com/JosephDavisC/Personal-Dashboard.git
+cd Personal-Dashboard
 cp .env.example .env
 docker compose up -d --build
 ```
@@ -86,6 +123,8 @@ To stop it: `docker compose down`. Add `-v` to also delete the database and uplo
 
 ## Deploying
 
+<img src="docs/brand/waakk.webp" width="130" align="right" alt="Chibi Joseph, surprised" />
+
 This app is built for one person. Before putting it on the internet:
 
 - Set `DEMO_MODE=false`. Demo mode turns off authentication completely.
@@ -113,4 +152,4 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui
 
 ## License
 
-[MIT](LICENSE) © Joseph Davis Chamdani
+[MIT](LICENSE) © Joseph Davis Chamdani. The Jo logo and chibi art are mine and are not covered by the license; the app ships with its own neutral logo.
