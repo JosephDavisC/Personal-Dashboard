@@ -1,0 +1,651 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus  @default(TODO)
+  priority    Priority    @default(MEDIUM)
+  dueDate     DateTime?
+  category    String?
+  links            Json?       // [{label: string, url: string}]
+  order            Int         @default(0)
+  completedAt      DateTime?
+  statusChangedAt  DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  photos           TaskPhoto[]
+
+  @@index([status, dueDate])
+  @@index([category])
+  @@index([completedAt])
+  @@index([statusChangedAt])
+}
+
+model TaskPhoto {
+  id        String   @id @default(cuid())
+  taskId    String
+  mediaId   String?
+  url       String
+  caption   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, order])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Shift {
+  id        String        @id @default(cuid())
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+  location  String
+  label     String?
+  hours     Float
+  grossPay  Float
+  netPay    Float
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([date, startTime])
+  @@index([date])
+}
+
+model Link {
+  id        String   @id @default(cuid())
+  label     String
+  url       String
+  icon      String?
+  order     Int      @default(0)
+  pinned    Boolean  @default(false)
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model Backup {
+  id        String   @id @default(cuid())
+  type      String   // "manual" | "auto"
+  data      Json     // { tasks: [...], shifts: [...], expenses: [...], notes: [...], links: [...] }
+  size      Int      // approximate bytes
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Single-row store for the newest Google OAuth refresh token.
+// Shared by every device session and the Sheets sync cron, so one
+// re-consent anywhere heals Google API access everywhere.
+model GoogleCredential {
+  id           String   @id @default("default")
+  refreshToken String   @db.Text
+  updatedAt    DateTime @updatedAt
+}
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  email     String
+  name      String?
+  image     String?
+  success   Boolean
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model JobApplication {
+  id              String            @id @default(cuid())
+  title           String
+  company         String
+  status          ApplicationStatus @default(APPLIED)
+  dateApplied     DateTime
+  nextSteps       String?
+  salary          String?
+  location        WorkLocation?
+  jobUrl          String?
+  notes           String?
+  followUpDate    DateTime?
+  assessmentType  AssessmentType    @default(NONE)
+  assessmentNotes String?
+  order           Int               @default(autoincrement())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  history         JobApplicationHistory[]
+
+  @@index([status])
+  @@index([dateApplied])
+  @@index([company])
+  @@index([followUpDate])
+}
+
+model JobApplicationHistory {
+  id            String            @id @default(cuid())
+  jobId         String
+  job           JobApplication    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  fromStatus    ApplicationStatus?
+  toStatus      ApplicationStatus
+  note          String?
+  createdAt     DateTime          @default(now())
+
+  @@index([jobId, createdAt])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  PHONE_SCREEN
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum WorkLocation {
+  REMOTE
+  HYBRID
+  ON_SITE
+}
+
+enum AssessmentType {
+  NONE
+  CODING
+  TAKE_HOME
+  SYSTEM_DESIGN
+  OTHER
+}
+
+model MonitoredSite {
+  id        String         @id @default(cuid())
+  label     String
+  url       String         @unique
+  order     Int            @default(0)
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  pings     SitePing[]
+  incidents SiteIncident[]
+
+  @@index([active, order])
+}
+
+model SitePing {
+  id           String        @id @default(cuid())
+  siteId       String
+  status       Int
+  responseTime Int
+  isUp         Boolean
+  checkedAt    DateTime      @default(now())
+  site         MonitoredSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, checkedAt])
+  @@index([checkedAt])
+}
+
+model SiteIncident {
+  id         String        @id @default(cuid())
+  siteId     String
+  title      String
+  startedAt  DateTime
+  resolvedAt DateTime?
+  duration   Int?
+  site       MonitoredSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, startedAt])
+  @@index([resolvedAt])
+}
+
+model MediaFile {
+  id          String    @id @default(cuid())
+  filename    String
+  storedName  String
+  mimeType    String
+  size        Int
+  title       String?
+  description String?
+  tags        String[]  @default([])
+  isPublic    Boolean   @default(false)
+  password    String?
+  downloads   Int       @default(0)
+  views       Int       @default(0)
+  thumbnail   String?
+  duration    Float?
+  width       Int?
+  height      Int?
+  shareSlug   String    @unique
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  pinnedMedia    PinnedMedia?
+  racketPhotos    RacketPhoto[]
+  restringPhotos  RestringPhoto[]
+  stringPhotos    StringPhoto[]
+  sessionPhotos   SessionPhoto[]
+  sessionVideos   SessionVideo[]
+
+  @@index([createdAt])
+  @@index([mimeType])
+}
+
+model PinnedMedia {
+  id        String    @id @default(cuid())
+  mediaId   String    @unique
+  media     MediaFile @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  category  String?
+  pinned    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([pinned])
+}
+
+// ============ IMPORTANT TOPICS (Phase 11) ============
+
+model ImportantTopic {
+  id        String           @id @default(cuid())
+  title     String
+  icon      String?
+  color     String?
+  category  String?
+  pinned    Boolean          @default(false)
+  order     Int              @default(autoincrement())
+  items     ImportantItem[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([category])
+  @@index([pinned])
+}
+
+model ImportantItem {
+  id        String          @id @default(cuid())
+  topicId   String
+  topic     ImportantTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  type      String
+  label     String?
+  url       String?
+  content   String?         @db.Text
+  mediaId   String?
+  pinned    Boolean         @default(false)
+  order     Int             @default(autoincrement())
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([topicId])
+}
+
+// ============ DIARY (Phase 9) ============
+
+model DiaryEntry {
+  id             String       @id @default(cuid())
+  date           DateTime     @unique
+  content        String?      @db.Text
+  mood           String?
+  tags           String[]     @default([])
+  manualTaskIds  String[]     @default([])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  photos         DiaryPhoto[]
+  links          DiaryLink[]
+
+  @@index([date])
+}
+
+model DiaryPhoto {
+  id        String     @id @default(cuid())
+  entryId   String
+  mediaId   String?
+  url       String
+  caption   String?
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+  entry     DiaryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId, order])
+}
+
+model DiaryLink {
+  id        String     @id @default(cuid())
+  entryId   String
+  url       String
+  title     String?
+  favicon   String?
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+  entry     DiaryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId, order])
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  type      String   // media_share, backup_complete, weekly_summary, deploy_success
+  to        String
+  subject   String
+  preview   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ============ PUSH NOTIFICATIONS ============
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  device    String?
+  createdAt DateTime @default(now())
+}
+
+model NotificationLog {
+  id     String   @id @default(cuid())
+  type   String   // shift_reminder, task_due, site_down, site_up
+  refId  String
+  sentAt DateTime @default(now())
+
+  @@unique([type, refId])
+  @@index([sentAt])
+}
+
+model NotificationPreferences {
+  id              String  @id @default("default")
+  shiftReminders  Boolean @default(true)
+  taskDue         Boolean @default(true)
+  siteAlerts      Boolean @default(true)
+  weeklySummary   Boolean @default(true)
+  jobUpdates      Boolean @default(true)
+  diaryReminder   Boolean @default(true)
+  driveBackup     Boolean @default(true)
+  stringAge       Boolean @default(true)
+}
+
+// ============ CONTACTS / NETWORKING ============
+
+model Contact {
+  id              String    @id @default(cuid())
+  googleContactId String?   @unique
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  title           String?
+  notes           String?   @db.Text
+  tags            String[]  @default([])
+  photoUrl        String?
+  photoMediaId    String?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([name])
+  @@index([email])
+  @@index([company])
+}
+
+// ============ CHAT HISTORY ============
+
+model ChatConversation {
+  id        String        @id @default(cuid())
+  title     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+
+  @@index([updatedAt])
+}
+
+model ChatMessage {
+  id               String           @id @default(cuid())
+  conversationId   String
+  role             String
+  content          String           @db.Text
+  anthropicBlocks  Json?
+  toolCalls        String[]         @default([])
+  imageIds         String[]         @default([])
+  inputTokens      Int?
+  outputTokens     Int?
+  cacheReadTokens  Int?
+  cacheWriteTokens Int?
+  createdAt        DateTime         @default(now())
+  conversation     ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+// ============ TENNIS (Phase 11) ============
+
+model TennisRacket {
+  id            String      @id @default(cuid())
+  name          String
+  brand         String
+  model         String
+  headSize      Float?
+  weight        Float?
+  pattern       String?
+  balance       Float?
+  swingWeight   Float?
+  currentString String?
+  tension       String?
+  lastStrung    DateTime?
+  notes         String?     @db.Text
+  photos        RacketPhoto[]
+  sessions      TennisSession[]
+  restrings     Restring[]
+  order         Int         @default(autoincrement())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model RacketPhoto {
+  id        String       @id @default(cuid())
+  racketId  String
+  racket    TennisRacket @relation(fields: [racketId], references: [id], onDelete: Cascade)
+  mediaId   String?
+  media     MediaFile?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  url       String
+  caption   String?
+  order     Int          @default(autoincrement())
+  createdAt DateTime     @default(now())
+
+  @@index([racketId])
+}
+
+model Restring {
+  id              String       @id @default(cuid())
+  racketId        String
+  racket          TennisRacket @relation(fields: [racketId], references: [id], onDelete: Cascade)
+  stringName      String
+  stringType      String?
+  tension         String
+  crossStringName String?
+  crossStringType String?
+  crossTension    String?
+  date            DateTime
+  notes           String?
+  photos          RestringPhoto[]
+  createdAt       DateTime     @default(now())
+
+  @@index([racketId])
+  @@index([date])
+}
+
+model RestringPhoto {
+  id         String    @id @default(cuid())
+  restringId String
+  restring   Restring  @relation(fields: [restringId], references: [id], onDelete: Cascade)
+  mediaId    String?
+  media      MediaFile? @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  url        String
+  caption    String?
+  order      Int       @default(autoincrement())
+  createdAt  DateTime  @default(now())
+
+  @@index([restringId])
+}
+
+model StringInventory {
+  id        String        @id @default(cuid())
+  name      String
+  type      String
+  gauge     String?
+  quantity  Int           @default(1)
+  notes     String?
+  order     Int           @default(0)
+  photos    StringPhoto[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model StringPhoto {
+  id        String          @id @default(cuid())
+  stringId  String
+  string    StringInventory @relation(fields: [stringId], references: [id], onDelete: Cascade)
+  mediaId   String?
+  media     MediaFile?      @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  url       String
+  caption   String?
+  order     Int             @default(autoincrement())
+  createdAt DateTime        @default(now())
+
+  @@index([stringId])
+}
+
+model TennisSession {
+  id        String        @id @default(cuid())
+  type      String
+  date      DateTime
+  duration  Float?
+  location  String?
+  racketId  String?
+  racket    TennisRacket? @relation(fields: [racketId], references: [id], onDelete: SetNull)
+  tags      String[]      @default([])
+  notes     String?       @db.Text
+  cost      Float?
+  coach     String?
+  playedWith         String?
+  calendarEventId    String?
+  calendarEventTitle String?
+  photos    SessionPhoto[]
+  videos    SessionVideo[]
+  strokeRatings StrokeRating[]
+  tennisRatings TennisRating[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([date])
+  @@index([type])
+}
+
+model SessionPhoto {
+  id        String        @id @default(cuid())
+  sessionId String
+  session   TennisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  mediaId   String?
+  media     MediaFile?    @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  url       String
+  caption   String?
+  order     Int           @default(autoincrement())
+  createdAt DateTime      @default(now())
+
+  @@index([sessionId])
+}
+
+model SessionVideo {
+  id        String        @id @default(cuid())
+  sessionId String
+  session   TennisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  mediaId   String?
+  media     MediaFile?    @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  url       String
+  label     String?
+  createdAt DateTime      @default(now())
+
+  @@index([sessionId])
+}
+
+model StrokeRating {
+  id        String         @id @default(cuid())
+  stroke    String
+  rating    Float
+  sessionId String?
+  session   TennisSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  date      DateTime       @default(now())
+
+  @@index([stroke])
+  @@index([date])
+}
+
+model TennisStage {
+  id          String          @id @default(cuid())
+  stageNumber Int
+  stageLabel  String
+  utrRange    String
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  isActive    Boolean         @default(true)
+  ratings     TennisRating[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model TennisRating {
+  id        String          @id @default(cuid())
+  stageId   String
+  stage     TennisStage     @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  date      DateTime        @default(now())
+  ratedBy   String
+  forehand  Float
+  bhTopspin Float
+  bhSlice   Float
+  serve     Float
+  volley    Float
+  overhead  Float
+  returnOf  Float
+  notes     String?         @db.Text
+  sessionId String?
+  session   TennisSession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  createdAt DateTime        @default(now())
+
+  @@index([stageId])
+  @@index([ratedBy])
+  @@index([date])
+}
+
+model TennisNote {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  tags      String[] @default([])
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
