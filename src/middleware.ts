@@ -22,7 +22,7 @@ export default authMiddleware((req) => {
   const isLoginPage = pathname === "/login";
   const isPrivacyPage = pathname === "/privacy";
   const isHealthCheck = pathname === "/api/health";
-  const isPublicAsset = pathname === "/manifest.json" || pathname === "/sw.js";
+  const isPublicAsset = pathname === "/manifest.json" || pathname === "/sw.js" || pathname === "/og-image.jpg" || pathname === "/logo.png";
   const isCronEndpoint = pathname === "/api/sites/cron" || pathname === "/api/backup/cron" || pathname === "/api/backup/sheets-sync" || pathname === "/api/email/weekly-summary" || pathname === "/api/push/cron";
   const isMediaShare = pathname.startsWith("/cdn") || pathname.startsWith("/api/media/share");
 
