@@ -125,7 +125,9 @@ export async function POST(request: Request) {
         return;
       }
 
-      const { filename, mimeType } = info;
+      // Newer busboy typings allow a missing filename
+      const filename = info.filename || "upload";
+      const { mimeType } = info;
 
       if (!MEDIA_ACCEPTED_TYPES.includes(mimeType as (typeof MEDIA_ACCEPTED_TYPES)[number])) {
         fileError = `File type ${mimeType} is not supported`;

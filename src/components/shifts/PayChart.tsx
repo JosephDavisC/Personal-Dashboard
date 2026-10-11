@@ -103,8 +103,8 @@ export function PayChart({ shifts }: PayChartProps) {
               color: c.tooltipText,
               padding: "8px 12px",
             }}
-            formatter={(value: number | undefined) =>
-              value != null ? `$${value.toFixed(2)}` : ""
+            formatter={(value) =>
+              typeof value === "number" ? `$${value.toFixed(2)}` : ""
             }
           />
           <Legend
