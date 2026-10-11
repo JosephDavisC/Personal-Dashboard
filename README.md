@@ -122,6 +122,36 @@ To stop it: `docker compose down`. Add `-v` to also delete the database and uplo
 - VAPID keys for push notifications (`npx web-push generate-vapid-keys`)
 - Cron tokens to turn on scheduled jobs. The `cron` service in compose already calls the site monitor and push reminders every minute once their tokens are set. Each endpoint stays disabled while its token is empty.
 
+## Install it on your phone
+
+The dashboard is a PWA, so it installs like an app: full screen, its own home screen icon, and push notifications. This is how I use mine every day.
+
+**Before you start**
+
+- It has to be served over **HTTPS** from a real domain. Phones will not install or send push notifications for a plain `http://` address, so do this after [deploying](#where-to-host-it).
+- Generate push keys once with `npx web-push generate-vapid-keys`, put them in `.env` as `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`, and set `VAPID_SUBJECT=mailto:you@example.com`.
+- For shift, task and diary reminders, also set `PUSH_CRON_SECRET` (the `cron` service then checks every minute). Site down alerts need `SITES_CRON_SECRET`.
+- Restart: `docker compose up -d`.
+
+**iPhone and iPad** (iOS 16.4 or newer)
+
+1. Open your dashboard in **Safari** and sign in.
+2. Tap the **Share** button, then **Add to Home Screen**, then **Add**.
+3. Open the dashboard **from the new home screen icon**. On iOS, notifications only work inside the installed app, not in a Safari tab.
+4. Go to **Settings** (bottom of the sidebar), tap **Enable Notifications**, and allow them when iOS asks.
+5. Tap **Test** to send yourself a notification, then pick which alerts you want: shift reminders, tasks due, site down, diary reminders and more.
+
+**Android**
+
+1. Open the dashboard in **Chrome**, tap the **⋮** menu, then **Install app** (or **Add to Home screen**).
+2. Open it from the icon, go to **Settings**, tap **Enable Notifications**, and allow them.
+
+**Mac and Windows**
+
+In Chrome or Edge, click the install icon at the right end of the address bar. Safari on macOS: **File, Add to Dock**. Notifications are enabled the same way, from **Settings**.
+
+Each device you enable shows up under Settings, where you can remove it later.
+
 ## Store media in Cloudflare R2 (optional)
 
 By default, uploads live on local disk in the `media` Docker volume. To keep them in a [Cloudflare R2](https://developers.cloudflare.com/r2/) bucket instead:
