@@ -14,6 +14,7 @@ import {
   ChatImagePreviewProvider,
   useImagePreview,
 } from "./ChatImageLightbox";
+import { READ_ONLY_MESSAGE } from "@/lib/demo";
 
 interface UploadedImage {
   mediaId: string;
@@ -728,7 +729,7 @@ export function ChatPage() {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
-            ? { ...m, content: `Error: ${errorMsg}` }
+            ? { ...m, content: errorMsg === READ_ONLY_MESSAGE ? errorMsg : `Error: ${errorMsg}` }
             : m
         )
       );
