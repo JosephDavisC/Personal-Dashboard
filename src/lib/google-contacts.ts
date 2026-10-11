@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getGoogleAccessToken, isDemoWithoutGoogle } from "@/lib/google-token";
 
 const PEOPLE_API = "https://people.googleapis.com/v1";
 
@@ -10,21 +10,14 @@ interface PersonResource {
   organizations?: { name?: string; title?: string }[];
 }
 
-async function getAccessToken(): Promise<string> {
-  const session = await auth();
-  if (session?.error) {
-    throw new Error("Google token expired. Please re-login.");
-  }
-  if (!session?.accessToken) {
-    throw new Error("No access token available. Please re-login.");
-  }
-  return session.accessToken;
-}
+const getAccessToken = getGoogleAccessToken;
 
 /** Search both saved contacts and "Other Contacts" (Gmail auto-saved) in parallel. */
 export async function searchContacts(
   query: string
 ): Promise<{ email: string; name?: string }[]> {
+  // Demo without a Google account: show nothing instead of an error
+  if (await isDemoWithoutGoogle()) return [];
   const token = await getAccessToken();
   const headers = { Authorization: `Bearer ${token}` };
   const params = new URLSearchParams({
@@ -77,6 +70,8 @@ export interface GoogleContact {
 
 /** Fetch all saved contacts from Google People API (paginated). Requires contacts.readonly scope. */
 export async function listAllContacts(): Promise<GoogleContact[]> {
+  // Demo without a Google account: show nothing instead of an error
+  if (await isDemoWithoutGoogle()) return [];
   const token = await getAccessToken();
   const contacts: GoogleContact[] = [];
   let pageToken: string | undefined;
@@ -132,6 +127,8 @@ export async function listAllContacts(): Promise<GoogleContact[]> {
 
 /** Fetch "Other Contacts" — auto-saved from Gmail interactions. Requires contacts.other.readonly or contacts.readonly scope. */
 export async function listOtherContacts(): Promise<GoogleContact[]> {
+  // Demo without a Google account: show nothing instead of an error
+  if (await isDemoWithoutGoogle()) return [];
   const token = await getAccessToken();
   const contacts: GoogleContact[] = [];
   let pageToken: string | undefined;

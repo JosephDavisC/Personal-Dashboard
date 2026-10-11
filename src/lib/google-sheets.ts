@@ -1,17 +1,8 @@
-import { auth } from "@/lib/auth";
+import { getGoogleAccessToken } from "@/lib/google-token";
 
 const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
 
-async function getAccessToken(): Promise<string> {
-  const session = await auth();
-  if (session?.error) {
-    throw new Error("Google token expired. Please re-login.");
-  }
-  if (!session?.accessToken) {
-    throw new Error("No access token available. Please re-login.");
-  }
-  return session.accessToken;
-}
+const getAccessToken = getGoogleAccessToken;
 
 /** Get access token for cron endpoints without a session. Prefers the
  * DB-stored refresh token (rotated by normal logins), falls back to the

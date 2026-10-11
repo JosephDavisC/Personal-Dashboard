@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getGoogleAccessToken } from "@/lib/google-token";
 
 const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
@@ -25,16 +25,7 @@ export async function getBackupFolderId(token: string): Promise<string> {
   return createDriveFolder(BACKUP_FOLDER_NAME, "root", token);
 }
 
-export async function getAccessToken(): Promise<string> {
-  const session = await auth();
-  if (session?.error) {
-    throw new Error("Google token expired. Please re-login.");
-  }
-  if (!session?.accessToken) {
-    throw new Error("No access token available. Please re-login.");
-  }
-  return session.accessToken;
-}
+export const getAccessToken = getGoogleAccessToken;
 
 /**
  * Create a folder in Google Drive.

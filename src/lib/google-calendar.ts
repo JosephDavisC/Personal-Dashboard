@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getGoogleAccessToken, isDemoWithoutGoogle } from "@/lib/google-token";
 
 const CALENDAR_API = "https://www.googleapis.com/calendar/v3";
 
@@ -44,22 +44,15 @@ interface CalendarListResponse {
   nextPageToken?: string;
 }
 
-async function getAccessToken(): Promise<string> {
-  const session = await auth();
-  if (session?.error) {
-    throw new Error("Google token expired. Please re-login.");
-  }
-  if (!session?.accessToken) {
-    throw new Error("No access token available. Please re-login.");
-  }
-  return session.accessToken;
-}
+const getAccessToken = getGoogleAccessToken;
 
 export async function listEvents(
   startDate: string,
   endDate: string,
   calendarId?: string
 ): Promise<CalendarEvent[]> {
+  // Demo without a Google account: show nothing instead of an error
+  if (await isDemoWithoutGoogle()) return [];
   const token = await getAccessToken();
   const id = encodeURIComponent(
     calendarId ?? process.env.GOOGLE_CALENDAR_ID ?? "primary"
@@ -242,6 +235,8 @@ export async function deleteEvent(
 }
 
 export async function listCalendars(): Promise<GoogleCalendar[]> {
+  // Demo without a Google account: show nothing instead of an error
+  if (await isDemoWithoutGoogle()) return [];
   const token = await getAccessToken();
 
   const res = await fetch(`${CALENDAR_API}/users/me/calendarList`, {
