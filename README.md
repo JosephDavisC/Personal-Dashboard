@@ -16,7 +16,7 @@ Self-hosted, installable as a PWA, with push notifications.
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-60A5FA)
 
-<img src="docs/demo.gif" alt="Dashboard tour: home, shifts, tasks, applications, diary, contacts, important, sites and tennis, in dark and light mode" />
+<img src="docs/demo.gif" alt="Dashboard tour in light mode, then dark: home, shifts, tasks, applications, diary, tennis, contacts, important and sites" />
 
 <sub>The recording runs on invented demo data. Every task, company and number in it is made up.<br/>
 Shorter cut: <a href="docs/demo-short.gif">demo-short.gif</a></sub>
@@ -41,20 +41,20 @@ Some pages I built and later stopped using: a diary, a memory page, and my own c
 
 This repository is a cleaned up public version of that dashboard. My personal data and the parts tied to my own servers are gone; everything else is here for you to run and make your own.
 
-## Dark and light
+## Light and dark
 
 <table>
   <tr>
-    <td><img src="docs/dashboard-dark.webp" alt="Home, dark mode" /></td>
     <td><img src="docs/dashboard-light.webp" alt="Home, light mode" /></td>
+    <td><img src="docs/dashboard-dark.webp" alt="Home, dark mode" /></td>
   </tr>
   <tr>
-    <td><img src="docs/shifts-dark.webp" alt="Shifts and earnings, dark mode" /></td>
     <td><img src="docs/shifts-light.webp" alt="Shifts and earnings, light mode" /></td>
+    <td><img src="docs/shifts-dark.webp" alt="Shifts and earnings, dark mode" /></td>
   </tr>
   <tr>
-    <td><img src="docs/tasks-dark.webp" alt="Task board, dark mode" /></td>
     <td><img src="docs/tasks-light.webp" alt="Task board, light mode" /></td>
+    <td><img src="docs/tasks-dark.webp" alt="Task board, dark mode" /></td>
   </tr>
 </table>
 
