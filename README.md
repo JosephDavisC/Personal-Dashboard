@@ -112,6 +112,7 @@ To stop it: `docker compose down`. Add `-v` to also delete the database and uplo
 |---|---|
 | [src/config/site.ts](src/config/site.ts) | App name, your first name, timezone, weather cities |
 | [src/config/shifts.ts](src/config/shifts.ts) | Hourly wage, deduction rate, shift locations and the calendar keywords that detect them, optional supervisor contacts |
+| [public/og-image.jpg](public/og-image.jpg) | The 1200x630 preview image shown when you share your dashboard link in WhatsApp, iMessage, Slack or LinkedIn. Set `APP_URL` (or `NEXTAUTH_URL`) to your public address so the preview finds it |
 
 **2. Turn on Google sign-in.**
 
