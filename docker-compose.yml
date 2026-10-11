@@ -1,0 +1,111 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=postgresql://dashboard:${DB_PASSWORD:-dashboard}@db:5432/dashboard
+      - NODE_ENV=production
+      # Auth
+      - DEMO_MODE=${DEMO_MODE:-false}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
+      - GOOGLE_CALENDAR_ID=${GOOGLE_CALENDAR_ID:-primary}
+      - APP_URL=${APP_URL:-}
+      - PRIVACY_CONTACT_EMAIL=${PRIVACY_CONTACT_EMAIL:-}
+      # Media
+      - CDN_BASE_URL=${CDN_BASE_URL:-}
+      - MEDIA_STORAGE_LIMIT_GB=${MEDIA_STORAGE_LIMIT_GB:-10}
+      # AI (optional)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ANTHROPIC_ADMIN_KEY=${ANTHROPIC_ADMIN_KEY:-}
+      # Email (optional)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-}
+      - SUMMARY_EMAIL_TO=${SUMMARY_EMAIL_TO:-}
+      # Push notifications (optional)
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
+      # Cron endpoint tokens (an unset token disables that endpoint)
+      - SITES_CRON_SECRET=${SITES_CRON_SECRET:-}
+      - PUSH_CRON_SECRET=${PUSH_CRON_SECRET:-}
+      - BACKUP_CRON_SECRET=${BACKUP_CRON_SECRET:-}
+      - SUMMARY_CRON_SECRET=${SUMMARY_CRON_SECRET:-}
+      # Google Sheets / Drive backups (optional)
+      - SHEETS_SYNC_SPREADSHEET_ID=${SHEETS_SYNC_SPREADSHEET_ID:-}
+      - SHEETS_SYNC_SECRET=${SHEETS_SYNC_SECRET:-}
+      - DRIVE_BACKUP_FOLDER_ID=${DRIVE_BACKUP_FOLDER_ID:-}
+      - ENABLE_DRIVE_AUTO_BACKUP=${ENABLE_DRIVE_AUTO_BACKUP:-false}
+    volumes:
+      - media:/data/media
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dashboard
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dashboard}
+      POSTGRES_DB: dashboard
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Applies migrations, then loads demo data when SEED_DEMO_DATA=true.
+  # The seed only runs on an empty database, so restarts never duplicate it.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: builder
+    environment:
+      - DATABASE_URL=postgresql://dashboard:${DB_PASSWORD:-dashboard}@db:5432/dashboard
+      - SEED_DEMO_DATA=${SEED_DEMO_DATA:-false}
+    command: >
+      sh -c "pnpm prisma migrate deploy &&
+             if [ \"$$SEED_DEMO_DATA\" = \"true\" ]; then pnpm prisma db execute --file prisma/seed.sql; fi"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Calls the app's cron endpoints once a minute (site pings, push reminders).
+  # An endpoint is skipped when its token is not set.
+  cron:
+    image: curlimages/curl:8.10.1
+    restart: unless-stopped
+    environment:
+      - SITES_CRON_SECRET=${SITES_CRON_SECRET:-}
+      - PUSH_CRON_SECRET=${PUSH_CRON_SECRET:-}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          [ -n "$$SITES_CRON_SECRET" ] && curl -fsS -o /dev/null "http://app:3000/api/sites/cron?token=$$SITES_CRON_SECRET"
+          [ -n "$$PUSH_CRON_SECRET" ] && curl -fsS -o /dev/null "http://app:3000/api/push/cron?token=$$PUSH_CRON_SECRET"
+          sleep 60
+        done
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  media:
