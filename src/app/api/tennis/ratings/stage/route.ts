@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { isReadOnlyDemo } from "@/lib/demo";
 import { TENNIS_STAGES, STROKES, STAGE_ADVANCE_THRESHOLD } from "@/lib/tennis/constants";
 import { getLatestRatings, getAverageRatings, canAdvanceStage } from "@/lib/tennis/ratings";
 
@@ -19,6 +20,16 @@ export async function GET() {
         },
       },
     });
+
+    if (!activeStage && isReadOnlyDemo()) {
+      // The read-only demo can't create the first stage; show an unsaved one instead
+      const stageConfig = TENNIS_STAGES[0]!;
+      const now = new Date();
+      activeStage = {
+        id: "demo-stage", stageNumber: 1, stageLabel: stageConfig.label, utrRange: stageConfig.utrRange,
+        startedAt: now, completedAt: null, isActive: true, createdAt: now, updatedAt: now, ratings: [],
+      };
+    }
 
     if (!activeStage) {
       const stageConfig = TENNIS_STAGES[0]!;

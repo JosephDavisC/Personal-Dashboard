@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { verifyPassword } from "@/lib/media-utils";
 import { openMediaFile } from "@/lib/media-storage";
 import { cookies } from "next/headers";
+import { isReadOnlyDemo } from "@/lib/demo";
 
 export async function GET(
   request: Request,
@@ -48,7 +49,8 @@ export async function GET(
 
   // Track actual downloads (user clicked Download button)
   const url = new URL(request.url);
-  if (url.searchParams.get("dl") === "1") {
+  // Counters are skipped in the read-only demo, which never writes
+  if (url.searchParams.get("dl") === "1" && !isReadOnlyDemo()) {
     await prisma.mediaFile.update({
       where: { id: file.id },
       data: { downloads: { increment: 1 } },

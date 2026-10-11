@@ -7,6 +7,7 @@ import { formatFileSize, formatDuration } from "@/lib/media-format";
 import { CDN_BASE_URL } from "@/lib/constants";
 import type { Metadata } from "next";
 import { SITE } from "@/config/site";
+import { isReadOnlyDemo } from "@/lib/demo";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -141,10 +142,13 @@ export default async function SharePage({ params }: Props) {
   }
 
   // Increment views
-  await prisma.mediaFile.update({
-    where: { id: file.id },
-    data: { views: { increment: 1 } },
-  });
+  // View counts are skipped in the read-only demo, which never writes
+  if (!isReadOnlyDemo()) {
+    await prisma.mediaFile.update({
+      where: { id: file.id },
+      data: { views: { increment: 1 } },
+    });
+  }
 
   const category = file.mimeType.startsWith("video/")
     ? "video"
