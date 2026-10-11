@@ -1,0 +1,227 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  button:not(:disabled),
+  a,
+  [role="button"]:not(:disabled),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  summary,
+  select:not(:disabled),
+  label[for] {
+    cursor: pointer !important;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-heading);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+/* Light Mode — Paper Theme (from portfolio) */
+:root {
+  --radius: 0.625rem;
+  --background: #F9F7F2;
+  --foreground: #3D2B1F;
+  --card: #FFFFFF;
+  --card-foreground: #3D2B1F;
+  --popover: #FFFFFF;
+  --popover-foreground: #3D2B1F;
+  --primary: #4CBB17;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0EDE6;
+  --secondary-foreground: #3D2B1F;
+  --muted: #F0EDE6;
+  --muted-foreground: #78716c;
+  --accent: #EBE8E0;
+  --accent-foreground: #3D2B1F;
+  --destructive: #DC2626;
+  --border: #C9C4BA;
+  --input: #C9C4BA;
+  --ring: #4CBB17;
+  --chart-1: #4CBB17;
+  --chart-2: #60A5FA;
+  --chart-3: #F59E0B;
+  --chart-4: #8B5CF6;
+  --chart-5: #EC4899;
+  --sidebar: #F3F0EA;
+  --sidebar-foreground: #3D2B1F;
+  --sidebar-primary: #4CBB17;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EBE8E0;
+  --sidebar-accent-foreground: #3D2B1F;
+  --sidebar-border: #C9C4BA;
+  --sidebar-ring: #4CBB17;
+}
+
+/* Dark Mode — Glassmorphism Theme (from portfolio) */
+.dark {
+  --background: hsl(222 40% 11%);
+  --foreground: hsl(210 40% 98%);
+  --card: hsl(222 40% 14%);
+  --card-foreground: hsl(210 40% 98%);
+  --popover: hsl(222 40% 14%);
+  --popover-foreground: hsl(210 40% 98%);
+  --primary: #60A5FA;
+  --primary-foreground: hsl(222 40% 11%);
+  --secondary: hsl(222 30% 18%);
+  --secondary-foreground: hsl(210 40% 98%);
+  --muted: hsl(222 30% 18%);
+  --muted-foreground: hsl(215 20% 65%);
+  --accent: hsl(222 30% 20%);
+  --accent-foreground: hsl(210 40% 98%);
+  --destructive: #F87171;
+  --border: hsl(215 20% 38%);
+  --input: hsl(215 20% 38%);
+  --ring: #60A5FA;
+  --chart-1: #60A5FA;
+  --chart-2: #34D399;
+  --chart-3: #FBBF24;
+  --chart-4: #A78BFA;
+  --chart-5: #F472B6;
+  --sidebar: hsl(222 40% 9%);
+  --sidebar-foreground: hsl(210 40% 98%);
+  --sidebar-primary: #60A5FA;
+  --sidebar-primary-foreground: hsl(210 40% 98%);
+  --sidebar-accent: hsl(222 30% 16%);
+  --sidebar-accent-foreground: hsl(210 40% 98%);
+  --sidebar-border: hsl(215 20% 28%);
+  --sidebar-ring: #60A5FA;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html, body {
+    @apply bg-background text-foreground font-medium;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  button,
+  a,
+  [role="button"],
+  [role="checkbox"],
+  [role="menuitem"],
+  [role="option"],
+  [role="tab"],
+  label[for],
+  select,
+  summary,
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: pointer;
+  }
+}
+
+/* Smooth page transition */
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in {
+  animation: page-fade-in 0.2s ease-out;
+}
+
+/* 404 page animations */
+@keyframes bounceIn {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  60% { transform: scale(1.1) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes scaleIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes fadeUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media print {
+  .no-print,
+  nav,
+  aside,
+  header,
+  [data-sidebar],
+  [data-slot="sheet-content"] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .print\:space-y-6 > :not(:first-child) {
+    margin-top: 1.5rem;
+  }
+  * {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+}
