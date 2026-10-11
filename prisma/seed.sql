@@ -77,6 +77,9 @@ BEGIN
     (gen_random_uuid()::text, ((d - 4)::timestamp) AT TIME ZONE tz, '**Personal Diary**' || chr(10) || 'Long day of interviews prep. Tired but it is coming together.', 'tired', ARRAY['school', 'personal'], NOW()),
     (gen_random_uuid()::text, ((d - 6)::timestamp) AT TIME ZONE tz, '**Personal Diary**' || chr(10) || 'Tried the new ramen place downtown with friends. Worth the wait.', 'excited', ARRAY['food', 'social'], NOW());
 
+  -- ===== Settings rows the app would otherwise create on first read =====
+  INSERT INTO "NotificationPreferences" (id) VALUES ('default') ON CONFLICT (id) DO NOTHING;
+
   -- ===== Quick links =====
   INSERT INTO "Link" (id, label, url, icon, "order", pinned, "updatedAt") VALUES
     (gen_random_uuid()::text, 'Email', 'https://mail.google.com', 'mail', 0, true, NOW()),
@@ -117,6 +120,8 @@ BEGIN
   INSERT INTO "RacketPhoto" (id, "racketId", url) VALUES
     (gen_random_uuid()::text, racket, '/demo/rackets/diadem-elevate-98.webp'),
     (gen_random_uuid()::text, racket2, '/demo/rackets/babolat-pure-drive.webp');
+  INSERT INTO "TennisStage" (id, "stageNumber", "stageLabel", "utrRange", "isActive", "startedAt", "updatedAt") VALUES
+    (gen_random_uuid()::text, 2, 'Intermediate', '3.0 - 5.0', true, NOW() - interval '60 days', NOW());
   INSERT INTO "TennisSession" (id, type, date, duration, location, "racketId", notes, "playedWith", "updatedAt") VALUES
     (gen_random_uuid()::text, 'PRACTICE', NOW() - interval '2 days', 1.5, 'City courts', racket, 'Worked on serve toss.', 'Sam', NOW()),
     (gen_random_uuid()::text, 'LESSON', NOW() - interval '9 days', 1, 'City courts', racket, 'Backhand footwork.', NULL, NOW());

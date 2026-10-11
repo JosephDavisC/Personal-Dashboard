@@ -1,5 +1,6 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
+import { isReadOnlyDemo } from "@/lib/demo";
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
@@ -79,6 +80,13 @@ export function isPushConfigured(): boolean {
 export async function getPreferences() {
   let prefs = await prisma.notificationPreferences.findUnique({ where: { id: "default" } });
   if (!prefs) {
+    // The read-only demo can't create the row; show the defaults instead
+    if (isReadOnlyDemo()) {
+      return {
+        id: "default", shiftReminders: true, taskDue: true, siteAlerts: true, weeklySummary: true,
+        jobUpdates: true, diaryReminder: true, driveBackup: true, stringAge: true,
+      };
+    }
     prefs = await prisma.notificationPreferences.create({ data: { id: "default" } });
   }
   return prefs;
