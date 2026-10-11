@@ -9,7 +9,8 @@
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "postinstall": "prisma generate",
-    "db:seed": "prisma db execute --file prisma/seed.sql"
+    "db:seed": "prisma db execute --file prisma/seed.sql",
+    "db:reset-demo": "prisma db execute --file prisma/reset-demo.sql && prisma db execute --file prisma/seed.sql"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",

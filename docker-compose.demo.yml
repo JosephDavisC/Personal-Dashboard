@@ -1,0 +1,37 @@
+# Public read-only demo: sign-in off, every change refused, demo data restored daily.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
+#
+# Put it behind your reverse proxy with HTTPS like any other deployment.
+# Never point this at a database that holds real data: the reset wipes it.
+
+services:
+  app:
+    environment:
+      - DEMO_MODE=true
+      - DEMO_READONLY=true
+
+  migrate:
+    environment:
+      - SEED_DEMO_DATA=true
+
+  # Restores the demo data once a day, in case anything ever slips through
+  demo-reset:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: builder
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://dashboard:${DB_PASSWORD:-dashboard}@db:5432/dashboard
+      - DEMO_RESET_INTERVAL_SECONDS=${DEMO_RESET_INTERVAL_SECONDS:-86400}
+    command: >
+      sh -c "while true; do
+               sleep $$DEMO_RESET_INTERVAL_SECONDS;
+               pnpm prisma db execute --file prisma/reset-demo.sql &&
+               pnpm prisma db execute --file prisma/seed.sql &&
+               echo \"demo data reset at $$(date -u)\";
+             done"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
