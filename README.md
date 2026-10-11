@@ -16,6 +16,8 @@ Self-hosted, installable as a PWA, with push notifications.
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-60A5FA)
 
+**[Try the live demo](https://dashboard-demo.joechamdani.com)** (read-only, made-up data)
+
 <img src="docs/demo.gif" alt="Dashboard tour in light mode, then dark: home, shifts, tasks, applications, diary, tennis, contacts, important and sites" />
 
 <sub>The recording runs on invented demo data. Every task, company and number in it is made up.<br/>
@@ -202,7 +204,7 @@ I run mine on a Hostinger VPS with Docker Compose, behind a reverse proxy with H
 
 ## Host a public demo (read-only)
 
-Want a "try it" link like mine? Read-only demo mode lets anyone click through the whole dashboard with the invented demo data, while the server refuses every change: no saving, uploading, deleting, AI chat, email or push. Visitors who try get a friendly "read-only demo" notice, and the demo data is restored once a day.
+Want a "try it" link like [mine](https://dashboard-demo.joechamdani.com)? Read-only demo mode lets anyone click through the whole dashboard with the invented demo data, while the server refuses every change: no saving, uploading, deleting, AI chat, email or push. Visitors who try get a friendly "read-only demo" notice, and the demo data is restored once a day.
 
 ```bash
 cp .env.example .env    # set a real NEXTAUTH_SECRET and DB_PASSWORD
