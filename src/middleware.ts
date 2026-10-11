@@ -1,6 +1,15 @@
 import { authMiddleware, isDemoMode } from "@/lib/auth";
+import { isReadOnlyDemo, isBlockedInReadOnlyDemo, READ_ONLY_HEADER, READ_ONLY_MESSAGE } from "@/lib/demo";
 
 export default authMiddleware((req) => {
+  // Read-only public demo: refuse every change before anything else runs
+  if (isReadOnlyDemo() && isBlockedInReadOnlyDemo(req.method, req.nextUrl.pathname)) {
+    return Response.json(
+      { error: READ_ONLY_MESSAGE, readOnlyDemo: true },
+      { status: 403, headers: { [READ_ONLY_HEADER]: "1" } }
+    );
+  }
+
   // Demo mode: no sign-in, see isDemoMode() in lib/auth.ts
   if (isDemoMode()) {
     return;

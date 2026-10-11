@@ -197,6 +197,7 @@ export { handlers, signIn, signOut };
 export function isDemoMode(): boolean {
   return (
     process.env.DEMO_MODE === "true" ||
+    process.env.DEMO_READONLY === "true" ||
     (process.env.NODE_ENV === "development" && process.env.DEV_BYPASS_AUTH === "true")
   );
 }
