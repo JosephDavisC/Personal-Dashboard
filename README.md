@@ -29,7 +29,7 @@ Shorter cut: <a href="docs/demo-short.gif">demo-short.gif</a></sub>
 
 I'm an organized person and I like to see everything on one screen. Every new task or deadline meant opening another tab, and I kept forgetting where I put things: Google Keep for notes, a calendar for classes, a dozen tabs for everything else.
 
-So one quiet quarter I built the screen I wanted, and I have used it every day since.
+So in February 2026 I built the screen I wanted, and I have used it every day since.
 
 <img src="docs/brand/coffee.webp" width="150" align="left" alt="Chibi Joseph with coffee" />
 
@@ -38,6 +38,10 @@ The feature I open every day is **shifts and earnings**. It pulls my work schedu
 Some pages I built and later stopped using: a diary, a memory page, and my own chatbot. I kept them anyway, because the point was one place for everything. My own copy runs on my VPS as a PWA installed from Safari, next to a status page and an analytics app I also built.
 
 <br clear="both"/>
+
+### Why share it now
+
+For about eight months this lived only on my own server. I never published it because I thought of it as my dashboard, built around my life and nobody else's. The more I thought about it, the more I wanted other people to have it too: to run their own dashboard, bend it to fit their own life, or take the idea and build something of their own.
 
 This repository is a cleaned up public version of that dashboard. My personal data and the parts tied to my own servers are gone; everything else is here for you to run and make your own.
 
