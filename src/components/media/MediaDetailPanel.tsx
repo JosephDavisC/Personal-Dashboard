@@ -747,7 +747,7 @@ export function MediaDetailPanel({
                       }}
                       onFocus={() => setShowEmailDropdown(true)}
                       onBlur={() => setTimeout(() => setShowEmailDropdown(false), 200)}
-                      placeholder="recipient@email.com"
+                      placeholder="recipient@example.com"
                       className={`text-base sm:text-sm ${emailError ? "border-red-500" : ""}`}
                     />
                     {showEmailDropdown && contactSuggestions.length > 0 && (
