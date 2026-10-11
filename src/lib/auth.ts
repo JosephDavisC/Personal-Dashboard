@@ -202,7 +202,7 @@ export function isDemoMode(): boolean {
 }
 
 const DEMO_SESSION = {
-  user: { name: "Alex Demo", email: "demo@localhost" },
+  user: { name: process.env.DEMO_USER_NAME || "Alex Demo", email: "demo@localhost" },
   expires: "2999-01-01T00:00:00.000Z",
 } as Session;
 

@@ -16,15 +16,22 @@ function getGreeting(): string {
 }
 
 export function GreetingBanner({ name }: { name?: string }) {
-  const [greeting, setGreeting] = useState(getGreeting);
+  // Greeting depends on the viewer's local hour, which the server (UTC) cannot
+  // know. Start empty so server and first client render match, then fill in.
+  const [greeting, setGreeting] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const id = setInterval(() => {
+    const tick = () => {
       setGreeting(getGreeting());
       setNow(new Date());
-    }, 1_000);
-    return () => clearInterval(id);
+    };
+    const first = setTimeout(tick, 0);
+    const id = setInterval(tick, 1_000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
   }, []);
 
   const today = now;
@@ -110,13 +117,18 @@ export function GreetingBanner({ name }: { name?: string }) {
         className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
         suppressHydrationWarning
       >
-        {greeting}{name ? `, ${name}` : ""}
+        {greeting ?? "Welcome back"}{name ? `, ${name}` : ""}
       </h1>
-      <p className="mt-1 text-sm text-muted-foreground" suppressHydrationWarning>
-        {format(today, "EEEE, MMMM d, yyyy")}
-        <span className="ml-2 font-mono tabular-nums" suppressHydrationWarning>
-          {format(now, "h:mm:ss a")}
-        </span>
+      {/* Date and clock also wait for the client, for the same reason as the greeting */}
+      <p className="mt-1 min-h-5 text-sm text-muted-foreground" suppressHydrationWarning>
+        {greeting !== null && (
+          <>
+            {format(today, "EEEE, MMMM d, yyyy")}
+            <span className="ml-2 font-mono tabular-nums">
+              {format(now, "h:mm:ss a")}
+            </span>
+          </>
+        )}
       </p>
       {segments.length > 0 ? (
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
