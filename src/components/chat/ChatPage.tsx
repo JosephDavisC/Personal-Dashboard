@@ -14,7 +14,7 @@ import {
   ChatImagePreviewProvider,
   useImagePreview,
 } from "./ChatImageLightbox";
-import { READ_ONLY_MESSAGE } from "@/lib/demo";
+import { READ_ONLY_MESSAGE, DEMO_CHAT_REPLY } from "@/lib/demo";
 
 interface UploadedImage {
   mediaId: string;
@@ -379,7 +379,7 @@ const MessageList = memo(function MessageList({
   );
 });
 
-export function ChatPage() {
+export function ChatPage({ readOnlyDemo = false }: { readOnlyDemo?: boolean }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [hasInput, setHasInput] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -568,6 +568,23 @@ export function ChatPage() {
     const content = (text ?? inputRef.current?.value ?? "").trim();
     const hasImages = pendingImages.length > 0;
     if ((!content && !hasImages) || isStreaming) return;
+
+    // Read-only demo: answer locally with what the assistant does, no API call
+    if (readOnlyDemo) {
+      setPendingImages([]);
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "user", content: content || "(image attached)" },
+        { id: crypto.randomUUID(), role: "assistant", content: DEMO_CHAT_REPLY },
+      ]);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+        inputRef.current.style.height = "auto";
+      }
+      setHasInput(false);
+      shouldAutoScroll.current = true;
+      return;
+    }
 
     // Upload pending images first
     let uploadedImages: UploadedImage[] = [];
