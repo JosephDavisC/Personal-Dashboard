@@ -200,6 +200,17 @@ I run mine on a Hostinger VPS with Docker Compose, behind a reverse proxy with H
 | **Railway, Render, Fly.io** | Good | Deploy the [Dockerfile](docker/Dockerfile) as a service and add their managed Postgres. Set the env vars from [.env.example](.env.example) plus `DATABASE_URL`. Attach a persistent volume at `/data/media`, or use `MEDIA_STORAGE=r2` and skip the volume. Run migrations once from your machine with `DATABASE_URL=... pnpm prisma migrate deploy`, and point the platform's cron (or [cron-job.org](https://cron-job.org)) at `/api/sites/cron?token=...` and `/api/push/cron?token=...` every minute. |
 | **Vercel, Netlify** | Not recommended | Serverless functions have no ffmpeg or pdftoppm (video and PDF thumbnails and video compression are skipped), no persistent disk (R2 becomes required), and a request body limit of a few MB, far below the 500 MB upload limit. The rest of the app can run there, but media uploads will not. |
 
+## Host a public demo (read-only)
+
+Want a "try it" link like mine? Read-only demo mode lets anyone click through the whole dashboard with the invented demo data, while the server refuses every change: no saving, uploading, deleting, AI chat, email or push. Visitors who try get a friendly "read-only demo" notice, and the demo data is restored once a day.
+
+```bash
+cp .env.example .env    # set a real NEXTAUTH_SECRET and DB_PASSWORD
+docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
+```
+
+Put it behind HTTPS like any other deployment. Leave Google, Anthropic, SMTP and push settings empty for a demo; nothing in it needs them. Use a separate database just for the demo, because the daily reset wipes it. `DEMO_RESET_INTERVAL_SECONDS` changes how often it resets (default 86400, once a day).
+
 ## Local development
 
 ```bash
