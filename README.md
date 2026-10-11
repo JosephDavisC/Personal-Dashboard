@@ -73,7 +73,7 @@ This repository is a cleaned up public version of that dashboard. My personal da
 | **Tennis** | Rackets, restrings, string inventory, sessions and stroke ratings (a template for tracking any sport or hobby) |
 | **AI chat** | Claude with tools over all of your dashboard data: ask, create and update in plain language |
 | **Sites** | Uptime monitoring with 90 day history, response time charts, incidents and push alerts |
-| **Media** | File library with image compression, video thumbnails and shareable links |
+| **Media** | File library with image compression, video thumbnails and shareable links, stored on local disk or in Cloudflare R2 |
 | **Backups** | JSON snapshots, CSV export, PDF report, optional Google Sheets sync and Google Drive backup |
 | **Everything else** | Command palette (Cmd+K), keyboard shortcuts, push notifications, weekly summary email, database viewer, dark and light themes, cross device sync |
 
@@ -117,9 +117,32 @@ To stop it: `docker compose down`. Add `-v` to also delete the database and uplo
 **3. Add what you want.** Everything else is optional and documented in [.env.example](.env.example):
 
 - `ANTHROPIC_API_KEY` for the AI chat and diary summaries
+- `MEDIA_STORAGE=r2` plus R2 credentials to keep uploads in Cloudflare R2 (see below)
 - SMTP settings for share emails and the weekly summary
 - VAPID keys for push notifications (`npx web-push generate-vapid-keys`)
 - Cron tokens to turn on scheduled jobs. The `cron` service in compose already calls the site monitor and push reminders every minute once their tokens are set. Each endpoint stays disabled while its token is empty.
+
+## Store media in Cloudflare R2 (optional)
+
+By default, uploads live on local disk in the `media` Docker volume. To keep them in a [Cloudflare R2](https://developers.cloudflare.com/r2/) bucket instead:
+
+1. In the Cloudflare dashboard, create an R2 bucket (for example `dashboard-media`). Keep it private: the app serves files itself, so passwords, expiry dates and private files keep working.
+2. Under **R2, Manage API tokens**, create a token with **Object Read and Write** on that bucket. Copy the Access Key ID, the Secret Access Key, and your Account ID.
+3. In `.env`:
+
+   ```bash
+   MEDIA_STORAGE=r2
+   R2_ACCOUNT_ID=your-account-id
+   R2_ACCESS_KEY_ID=...
+   R2_SECRET_ACCESS_KEY=...
+   R2_BUCKET=dashboard-media
+   ```
+
+4. `docker compose up -d` to restart the app.
+
+New uploads are still compressed and thumbnailed on the server first, then moved to the bucket (`media/` for files, `thumbs/` for thumbnails). Video streaming with range requests, downloads, the AI chat, the weekly summary email and Drive backups all read from R2 transparently. Files uploaded before the switch stay on disk; copy them to the bucket under `media/` and `thumbs/` with the same names if you want everything in one place.
+
+`R2_ENDPOINT` is only needed for an EU or FedRAMP jurisdiction bucket, or to point at any other S3 compatible server.
 
 ## Deploying
 
@@ -129,9 +152,19 @@ This app is built for one person. Before putting it on the internet:
 
 - Set `DEMO_MODE=false`. Demo mode turns off authentication completely.
 - Set a strong `NEXTAUTH_SECRET` and `DB_PASSWORD`.
-- Put it behind a reverse proxy with HTTPS (Caddy, Nginx, Traefik). Compose binds the app to `127.0.0.1` only.
+- Put it behind a reverse proxy with HTTPS (Caddy, Nginx, Traefik). Compose binds the app to `127.0.0.1` only. See [Where to host it](#where-to-host-it).
 - Set `NEXTAUTH_URL` to your public URL and add the matching redirect URI in Google Cloud Console.
 - Review [src/app/privacy/page.tsx](src/app/privacy/page.tsx) if you publish your OAuth consent screen.
+
+## Where to host it
+
+I run mine on a Hostinger VPS with Docker Compose, behind a reverse proxy with HTTPS, next to a few other apps of mine. Any of these work:
+
+| Option | Fit | Notes |
+|---|---|---|
+| **Any VPS** (Hostinger, DigitalOcean, Hetzner, Linode, a home server) | Best | Clone the repo, fill in `.env`, `docker compose up -d --build`. Everything in this repo, including the cron service, just runs. Add a reverse proxy (Caddy is the easiest) for HTTPS. |
+| **Railway, Render, Fly.io** | Good | Deploy the [Dockerfile](docker/Dockerfile) as a service and add their managed Postgres. Set the env vars from [.env.example](.env.example) plus `DATABASE_URL`. Attach a persistent volume at `/data/media`, or use `MEDIA_STORAGE=r2` and skip the volume. Run migrations once from your machine with `DATABASE_URL=... pnpm prisma migrate deploy`, and point the platform's cron (or [cron-job.org](https://cron-job.org)) at `/api/sites/cron?token=...` and `/api/push/cron?token=...` every minute. |
+| **Vercel, Netlify** | Not recommended | Serverless functions have no ffmpeg or pdftoppm (video and PDF thumbnails and video compression are skipped), no persistent disk (R2 becomes required), and a request body limit of a few MB, far below the 500 MB upload limit. The rest of the app can run there, but media uploads will not. |
 
 ## Local development
 
