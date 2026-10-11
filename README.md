@@ -4,7 +4,7 @@
 
 # Personal Dashboard
 
-**One screen for my whole life.**<br/>
+**One screen for my daily life.**<br/>
 Calendar, tasks, work shifts and earnings, job applications, a diary, and the sites I run.<br/>
 Self-hosted, installable as a PWA, with push notifications.
 
